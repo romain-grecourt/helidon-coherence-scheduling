@@ -1,0 +1,9 @@
+server:
+  port: 8080
+  host: 0.0.0.0
+
+scheduler:
+  jobs:
+    job-1:
+      pattern: "0/5 * * ? * * *"
+      roles: [ "scheduler" ]
