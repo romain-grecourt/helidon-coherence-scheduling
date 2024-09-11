@@ -6,7 +6,6 @@ import io.helidon.common.config.Config;
 import io.helidon.common.config.GlobalConfig;
 import io.helidon.common.media.type.MediaTypes;
 import io.helidon.http.NotFoundException;
-import io.helidon.http.Status;
 import io.helidon.webserver.http.HttpRules;
 import io.helidon.webserver.http.HttpService;
 import io.helidon.webserver.http.ServerRequest;
@@ -65,9 +64,9 @@ final class SchedulerService implements HttpService {
     }
 
     private void listExecutions(ServerRequest req, ServerResponse res) {
-        String id = req.path().pathParameters().get("id");
+        String taskId = req.path().pathParameters().get("id");
         JsonArrayBuilder arrayBuilder = JSON.createArrayBuilder();
-        tasks.executions(id).orElseThrow(() -> new NotFoundException(id))
+        tasks.executions(taskId).orElseThrow(() -> new TaskNotFoundException(taskId))
                 .forEach(execution -> arrayBuilder.add(JSON.createObjectBuilder()
                         .add("state", execution.state().name())
                         .add("timestamp", execution.timestamp())
@@ -81,10 +80,17 @@ final class SchedulerService implements HttpService {
     }
 
     private void cancelTask(ServerRequest req, ServerResponse res) {
-        String id = req.path().pathParameters().get("id");
-        if (!scheduler.cancel(id)) {
-            res.status(Status.NOT_FOUND_404);
+        String taskId = req.path().pathParameters().get("id");
+        if (!scheduler.cancel(taskId)) {
+            throw new TaskNotFoundException(taskId);
         }
         res.send();
+    }
+
+    private static final class TaskNotFoundException extends NotFoundException {
+
+        public TaskNotFoundException(String taskId) {
+            super("task %s not found".formatted(taskId));
+        }
     }
 }

@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Main" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="io.helidon.examples.coherence.scheduling.Main" />
+    <module name="helidon-coherence-scheduling" />
+    <option name="VM_PARAMETERS" value="-Dcoherence.role=&quot;node1,scheduler&quot;" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="io.helidon.examples.coherence.scheduling.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

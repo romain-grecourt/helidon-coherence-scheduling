@@ -69,10 +69,9 @@ public final class Scheduler {
                 });
 
         try {
-            Task.Coordinator<TaskExecution> coordinator = orchestration.submit();
             TaskFuture taskFuture = new TaskFuture();
             taskFuture.future().whenComplete((r, ex) -> Tasks.abortAll(id, ex));
-            coordinator.subscribe(taskFuture);
+            orchestration.subscribe(taskFuture).submit();
         } catch (IllegalArgumentException ex) {
             LOGGER.log(Level.INFO, ex.getMessage(), ex);
         }
