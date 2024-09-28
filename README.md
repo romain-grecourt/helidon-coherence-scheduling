@@ -5,7 +5,7 @@ This project implements a distributed scheduler using Coherence and Helidon SE.
 ## Build and run
 
 ```shell
-mvn package
+mvn package -DskipTests
 java -Dcoherence.role="node1,scheduler" -Dserver.port=8081 -jar target/helidon-coherence-scheduling.jar &
 sleep 5
 java -Dcoherence.role="node2,scheduler" -jar target/helidon-coherence-scheduling.jar &

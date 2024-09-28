@@ -33,7 +33,7 @@ public final class CronTask<T> extends com.oracle.coherence.concurrent.executor.
      * @param expression expression
      */
     public CronTask(Task<T> task, String expression) {
-        super(task, expression, false);
+        super(task, expression);
         this.executionTime = parseCron();
     }
 
