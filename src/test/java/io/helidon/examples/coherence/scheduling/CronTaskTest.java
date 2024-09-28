@@ -9,7 +9,6 @@ import java.io.Serial;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
 
 import com.oracle.coherence.concurrent.Latches;
 import com.oracle.coherence.concurrent.executor.RemoteExecutor;
@@ -17,16 +16,16 @@ import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 import com.tangosol.net.Coherence;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.function.Remote;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.ExpectedToFail;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class CronTaskTest {
+class CronTaskTest {
 
     @BeforeAll
     @SuppressWarnings("resource")
@@ -48,7 +47,6 @@ public class CronTaskTest {
     }
 
     @Test
-    @ExpectedToFail
     void testLambda() throws Exception {
         // After the 1st tick, the task is cloned but the result is null
         // Thus the 2nd tick throws a NPE
@@ -67,7 +65,43 @@ public class CronTaskTest {
         }), "wrapped-lambda-task");
     }
 
-    void doTest(BiFunction<String, Integer, Task<Boolean>> factory, String id) throws Exception {
+    @Test
+    void testPlainLambdaTask() throws Exception {
+        var taskResult = "foo";
+        var future = new CompletableFuture<String>();
+        RemoteExecutor.getDefault()
+                .orchestrate((Task<String>) ctx -> {
+                    // do something
+                    return taskResult.toUpperCase();
+                })
+                .subscribe(new Task.Subscriber<>() {
+
+                    String result = null;
+
+                    @Override
+                    public void onComplete() {
+                        future.complete(result);
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        future.completeExceptionally(throwable);
+                    }
+
+                    @Override
+                    public void onNext(String item) {
+                        result = item;
+                    }
+
+                    @Override
+                    public void onSubscribe(Task.Subscription<? extends String> subscription) {
+                    }
+                })
+                .submit();
+        assertThat(future.get(10, TimeUnit.SECONDS), is("FOO"));
+    }
+
+    void doTest(Remote.BiFunction<String, Integer, Task<Boolean>> factory, String id) throws Exception {
         // use a latch to wait for 2 ticks
         var latchName = id + "-latch";
         var latch = Latches.remoteCountDownLatch(latchName, 2);

@@ -9,12 +9,10 @@ import java.util.concurrent.TimeUnit;
 
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
-import com.oracle.coherence.concurrent.executor.ClusteredOrchestration;
 import com.oracle.coherence.concurrent.executor.RemoteExecutor;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.options.Debugging;
 import com.oracle.coherence.concurrent.executor.options.Member;
-import com.oracle.coherence.concurrent.executor.options.Name;
 
 /**
  * Scheduler.
@@ -50,17 +48,11 @@ public final class Scheduler {
     public void schedule(String id, String pattern, List<String> roles, Runnable runnable) {
         CronTask<TaskExecution> task = new CronTask<>(ctx -> execute(ctx, runnable), pattern);
 
-        // NOTE: work-around for a bug in NamedOrchestration.filter ??
-        Task.Orchestration<TaskExecution> orchestration = new ClusteredOrchestration<>(executor, task)
+        Task.Orchestration<TaskExecution> orchestration = executor.orchestrate(task)
                 .as(id)
                 .with(Debugging.of(Logger.FINEST))
                 .limit(1) // only one execution per tick
                 .filter(executorInfo -> {
-                    Name name = executorInfo.getOption(Name.class, Name.UNNAMED);
-                    if (!name.getName().equals("virtual")) {
-                        // NOTE: work-around for a bug in NamedOrchestration.filter ??
-                        return false;
-                    }
                     Member memberOption = executorInfo.getOption(Member.class, null);
                     if (memberOption != null) {
                         return memberOption.get().getRoles().containsAll(roles);

@@ -15,8 +15,7 @@
 
     <properties>
         <mainClass>io.helidon.examples.coherence.scheduling.Main</mainClass>
-        <version.lib.coherence>24.03.1</version.lib.coherence>
-        <version.lib.junit-pioneer>2.2.0</version.lib.junit-pioneer>
+        <version.lib.coherence>24.09</version.lib.coherence>
     </properties>
 
     <dependencyManagement>
@@ -70,12 +69,6 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit-pioneer</groupId>
-            <artifactId>junit-pioneer</artifactId>
-            <version>${version.lib.junit-pioneer}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

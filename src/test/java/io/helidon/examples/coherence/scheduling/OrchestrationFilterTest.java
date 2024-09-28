@@ -14,11 +14,10 @@ import com.tangosol.net.Coherence;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.ExpectedToFail;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class OrchestrationFilterTest {
+class OrchestrationFilterTest {
 
     @BeforeAll
     @SuppressWarnings("resource")
@@ -35,7 +34,6 @@ public class OrchestrationFilterTest {
     }
 
     @Test
-    @ExpectedToFail
     void testFilterIgnored() throws Exception {
         // NamedOrchestration.filter does not save the computed predicate
         doTest(executor -> executor.orchestrate(ctx -> true));
