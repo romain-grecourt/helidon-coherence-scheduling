@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serial;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -68,37 +69,15 @@ class CronTaskTest {
     @Test
     void testPlainLambdaTask() throws Exception {
         var taskResult = "foo";
-        var future = new CompletableFuture<String>();
+        var taskFuture = new TaskFuture<String>();
         RemoteExecutor.getDefault()
                 .orchestrate((Task<String>) ctx -> {
                     // do something
                     return taskResult.toUpperCase();
                 })
-                .subscribe(new Task.Subscriber<>() {
-
-                    String result = null;
-
-                    @Override
-                    public void onComplete() {
-                        future.complete(result);
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        future.completeExceptionally(throwable);
-                    }
-
-                    @Override
-                    public void onNext(String item) {
-                        result = item;
-                    }
-
-                    @Override
-                    public void onSubscribe(Task.Subscription<? extends String> subscription) {
-                    }
-                })
+                .subscribe(taskFuture)
                 .submit();
-        assertThat(future.get(10, TimeUnit.SECONDS), is("FOO"));
+        assertThat(taskFuture.await(Duration.ofSeconds(10)), is("FOO"));
     }
 
     void doTest(Remote.BiFunction<String, Integer, Task<Boolean>> factory, String id) throws Exception {

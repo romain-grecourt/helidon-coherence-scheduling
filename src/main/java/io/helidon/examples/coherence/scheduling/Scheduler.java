@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.lang.System.Logger.Level;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
@@ -61,8 +59,8 @@ public final class Scheduler {
                 });
 
         try {
-            TaskFuture taskFuture = new TaskFuture();
-            taskFuture.future().whenComplete((r, ex) -> Tasks.abortAll(id, ex));
+            TaskFuture<TaskExecution> taskFuture = new TaskFuture<>();
+            taskFuture.whenComplete((r, ex) -> Tasks.abortAll(id, ex));
             orchestration.subscribe(taskFuture).submit();
         } catch (IllegalArgumentException ex) {
             LOGGER.log(Level.INFO, ex.getMessage(), ex);
@@ -81,7 +79,7 @@ public final class Scheduler {
             return false;
         }
         LOGGER.log(Level.INFO, "Canceling task: {0}", id);
-        TaskFuture taskFuture = new TaskFuture();
+        TaskFuture<TaskExecution> taskFuture = new TaskFuture<>();
         coordinator.subscribe(taskFuture);
         coordinator.cancel(true);
         try {
@@ -112,45 +110,4 @@ public final class Scheduler {
         return execution;
     }
 
-    /**
-     * Task future.
-     *
-     * @param future future
-     */
-    record TaskFuture(CompletableFuture<Void> future) implements Task.Subscriber<TaskExecution> {
-
-        TaskFuture() {
-            this(new CompletableFuture<>());
-        }
-
-        /**
-         * Wait for completion.
-         *
-         * @param timeout timeout
-         * @throws Exception if an error occurs
-         */
-        void await(Duration timeout) throws Exception {
-            future.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
-        }
-
-        @Override
-        public void onComplete() {
-            future.complete(null);
-        }
-
-        @Override
-        public void onError(Throwable th) {
-            future.completeExceptionally(th);
-        }
-
-        @Override
-        public void onNext(TaskExecution execution) {
-            // no-op
-        }
-
-        @Override
-        public void onSubscribe(Task.Subscription<? extends TaskExecution> subscription) {
-            // no-op
-        }
-    }
 }
